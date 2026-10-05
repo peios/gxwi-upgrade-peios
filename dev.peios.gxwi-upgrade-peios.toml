@@ -1,0 +1,6 @@
+# What Upgrade Peios is to a desktop (PGSS Applications): installed as
+# /usr/share/apps/dev.peios.gxwi-upgrade-peios.toml, named for the id, by
+# the package that installs the program. It is a window and nothing else.
+title = "Upgrade Peios"
+description = "Move this machine to the next release of Peios"
+program = "/usr/bin/gxwi-upgrade-peios"

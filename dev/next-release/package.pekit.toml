@@ -1,0 +1,198 @@
+format = "peipkg"
+
+[package]
+name         = "dev.peios.peios-experimental"
+version      = "2026.9-1"
+architecture = "noarch"
+description  = "Peios Experimental edition: the base system and its OS release identity"
+license      = "MIT"
+license_class = "free"
+homepage     = "https://github.com/peios/pkgs"
+
+# An edition is not moved by a routine package operation: upgrading it
+# also has to reconcile what the package manager deliberately does not
+# touch (the release's registry seeds), and that is upgrade-peios' job.
+# peipkg refuses to install or upgrade this package by name and holds it
+# back from a bulk upgrade, printing this message; upgrade-peios drives
+# peipkg with --bypass-alternate-upgrade. The declaration grants nothing.
+[package.alternate_upgrade]
+message = "To upgrade Peios use the `upgrade-peios` command."
+
+# The base system. Every entry is a `>=` floor rather than a pin: at this
+# pre-alpha stage the floors let packages move without a repackage of the
+# edition on every change. Production editions pin exactly. The set and the
+# floors are dist/.old/prod/manifest.toml, the last hand-pinned composition.
+#
+# What that composition has and this deliberately does NOT: live-boot and
+# peios-dwe. They make an image a live medium (and a development
+# workstation); they are properties of the ISO, not of an installed Peios,
+# and peiso adds them. No disk-boot either, and for the same reason from the
+# other side: which boot packages a system carries is a property of the
+# medium it boots from, and peios-install swaps live-boot for disk-boot on
+# the target. An edition that named either would be installable on only one
+# kind of medium.
+#
+# A dependency lands in the depender's root unless the edge says otherwise
+# (peipkg DESIGN-named-roots: a package's default_root governs top-level
+# installs only). Everything the initramfs runs — prelude, its hooks, the
+# module subset, its base tree — is therefore placed there explicitly.
+#
+# Things listed here that the dependency graph would not otherwise reach:
+# the NSS modules authd-nss and resolvd-nss (glibc dlopens them by name, so
+# nothing depends on them), the firmware packages
+# (a policy choice — the target CPU and devices are unknown at compose time,
+# so every vendor ships), and fsbase-irf (each independently executing root
+# needs its own mountpoints, and this is the only edge that puts them in the
+# initramfs). Not listed: peiosutils and libpeios in the initramfs root —
+# the *-irf hooks and ELF-derived edges pull them there.
+[dependencies]
+# Kernel, modules, and the tools that load them.
+"dev.peios.kernel"             = ">= 0.20.1-rc13-1"
+"dev.peios.kernel-modules"     = ">= 0.20.1-rc13-1"
+"dev.peios.kernel-modules-irf" = { constraint = ">= 0.20.1-rc13-1", root = "initramfs" }
+"org.kernel.kmod"              = ">= 34.2-1"
+# Local console switching, keymaps and fonts (PEI-1187).
+"org.kernel.kbd"               = ">= 2.10.0-1"
+"dev.peios.coldplug-irf"       = { constraint = ">= 1.0.0-1", root = "initramfs" }
+"io.github.eudev-project.eudev" = ">= 3.2.14-1"
+
+# Base filesystem and topology, in both roots.
+"dev.peios.fsbase"                      = ">= 1.0.0-1"
+"dev.peios.fsbase-irf"                  = { constraint = ">= 1.0.0-1", root = "initramfs" }
+"dev.peios.fsbase-stratafs-mount-hooks" = { constraint = ">= 1.0.0-1", root = "initramfs" }
+
+# Base userspace. peios-install is part of every Peios, not of the live
+# medium: an installed system can install another.
+"dev.peios.peiosutils" = ">= 0.8.8-1"
+"dev.peios.libpeios"   = ">= 0.5.0-1"
+"org.gnu.glibc-bin"    = ">= 2.44-1" # locale tools and compiled C.UTF-8
+"org.git.kernel.dash"  = ">= 0.5.13.5-1"
+"dev.peios.peipkg" = ">= 0.1.3-1"
+"dev.peios.peios-install" = ">= 0.3.0-1"
+
+# The installer proper: installerd (the engine, a SYSTEM service) and
+# install-tui (its terminal surface). Ships alongside peios-install, not
+# instead of it, until it has installed a system that boots -- the script is
+# still what `make boot-install` drives.
+"dev.peios.peios-installer" = ">= 0.1.5-1"
+
+# First-boot setup: oobed and its own terminal surface. A separate package
+# from the installer because the two have separate lifetimes -- an installed
+# system keeps OOBE and has no use for the installer, and removing the
+# installer from it should not take first-boot setup with it.
+#
+# It ships a seed master and nothing applies it here: `install_autoapply` in
+# release.toml is what opts it in, on the installed machine only.
+"dev.peios.oobe" = ">= 0.1.5-1"
+
+# Boot and init. prelude is the initramfs PID 1 and lives only there.
+"dev.peios.prelude" = { constraint = ">= 0.0.3-1", root = "initramfs" }
+"dev.peios.peinit"  = ">= 0.0.2-1"
+# svctl and the shutdown commands are peinit's operator client, split into
+# their own package so recovery images can carry the client without PID 1;
+# nothing depends on it, so like net and resolv it is listed here (PEI-1071).
+"dev.peios.peinit-svctl" = ">= 0.0.2-1"
+
+# Identity (PGSS Logon).
+"dev.peios.authd"       = ">= 0.0.14-1"
+"dev.peios.authd-lpsd"  = ">= 0.0.14-1"
+"dev.peios.authd-lps"   = ">= 0.0.14-1"
+"dev.peios.authd-login" = ">= 0.0.14-1"
+"dev.peios.authd-nss"   = ">= 0.0.14-1"
+# The passwordless live-image administrator is deliberately no longer carried
+# by lpsd itself. This image explicitly opts into both its payload and registry
+# seed; installed/production images do not acquire it transitively.
+"dev.peios.authd-live-account" = ">= 0.0.14-1"
+
+# Durable events, service logs and metrics.
+"dev.peios.eventd" = ">= 0.1.0-1"
+
+# Networking: netd owns links, addresses, routes and DHCP; resolvd owns
+# name resolution; net and resolv are their operator commands;
+# resolvd-nss is dlopened by glibc for host lookups, so like authd-nss
+# nothing depends on it and it must be listed.
+"dev.peios.netd"        = ">= 0.1.1-1"
+"dev.peios.net"         = ">= 0.1.7-1"
+"dev.peios.resolvd"     = ">= 0.1.0-1"
+"dev.peios.resolv"      = ">= 0.1.0-1"
+"dev.peios.resolvd-nss" = ">= 0.1.0-1"
+
+# Trust. trustd composes what this machine trusts from the roots
+# ca-certificates ships and the decisions under Machine\System\Trust, and
+# renders /etc/ssl for the software that reads trust from a path. Nothing
+# depends on ca-certificates — trustd needs *a* bundle at a known path, not
+# that package specifically — so, like the nss modules, it is listed here.
+#
+# The floor is on the dotted YYYY.MM.DD scheme org.mozilla.ca-certificates
+# uses, and has to be: that package provides the `ca-certificates` name at its
+# own version, and a dotted date sorts BELOW an undotted one because the
+# numeric major is 2026 rather than 20260830. The prior undotted floor could not
+# be satisfied by a qualified package, leaving this edition unresolvable
+# (PEI-840).
+"dev.peios.trustd" = ">= 0.1.1-1"
+"dev.peios.trust"  = ">= 0.1.1-1"
+"org.mozilla.ca-certificates" = ">= 2026.09.06-1"
+
+# Zone data. Like the trust roots it is base-system data nothing depends on
+# by name: peinit resolves OnCalendar timezones through it, timed and anything
+# formatting local time read it (PEI-832).
+"org.iana.tzdata" = ">= 2026c-1"
+
+# Time. timed is the only process permitted to set the clock; clock is its
+# operator command. There is deliberately no NTP server here — that is a
+# separate, future, unprivileged package which subscribes to timed for its
+# state, because the client holds the privilege and listens on nothing
+# while a server is exposed to the whole domain and needs no privilege.
+"dev.peios.timed" = ">= 0.1.1-1"
+"dev.peios.clock" = ">= 0.1.1-1"
+
+# Authenticated SSH access; the deprecated Atrium stack is not shipped.
+"dev.peios.openssh" = ">= 10.5.1-1"
+
+# GXWI display server, compositor, desktop shell and file explorer.
+"dev.peios.gxwi" = ">= 0.0.1-1"
+"dev.peios.fenestra" = ">= 0.0.1-1"
+"dev.peios.fenesh" = ">= 0.0.1-1"
+"dev.peios.gexora" = ">= 0.0.1-1"
+
+# The PNP viewer (PEI-598): network observation, starting as the packet viewer.
+# Experimental is explicitly the development-machine image, so PNPd is
+# intentionally installed and its pnpd-service seed is autoapplied. This does
+# not approve the unauthenticated listener for a future production profile;
+# such a profile requires a separate least-privilege exposure design. The floor
+# is the first qualified build under PNPd's qualified package identity.
+"dev.peios.pnpd" = ">= 0.5.1-1"
+
+# Device firmware (PEI-466). Unconditional: see above.
+"org.kernel.linux-firmware-iwlwifi"         = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-atheros"         = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-mediatek"        = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-realtek"         = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-broadcom"        = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-marvell"         = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-ralink"          = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-amd-graphics"    = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-amd-platform"    = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-intel-graphics"  = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-intel-platform"  = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-intel-sound"     = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-nvidia-graphics" = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-audio-codecs"    = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-nic"             = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-storage"         = ">= 2026.08.10-1"
+"org.kernel.linux-firmware-misc"            = ">= 2026.08.10-1"
+"org.sofproject.sof-firmware" = ">= 2025.12.2-1"
+
+# The os-release file generated by the build, plus its compat symlink in the
+# vendor config layer (/usr/etc, the bottom of the /etc merge — packages never
+# write /etc directly). `:` sources from the main build's stage; an exact
+# (non-glob) source maps to its exact destination path.
+[files]
+"docs/LICENSE"                   = "usr/share/licenses/dev.peios.peios-experimental/LICENSE"
+"src/os-release"                = "usr/lib/os-release"
+# The real edition makes this a link to ../lib/os-release in its build; a
+# buildless package can't ship a link whose target isn't beside it, so the
+# stand-in ships a copy.
+"src/etc-os-release"            = "usr/etc/os-release"
+"src/release.toml"              = "usr/share/peios/release.toml"
+"src/upgrade-peios-test.reg"    = "usr/share/regim/upgrade-peios-test.reg"

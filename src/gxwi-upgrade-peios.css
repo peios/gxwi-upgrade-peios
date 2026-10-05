@@ -1,0 +1,25 @@
+/* What is Upgrade Peios's alone; the rest is libgxwi's settings stylesheet. */
+
+/* A plan's changes: each one's mark drawn quietly, in its colour. */
+.st-row .st-item > .st-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--surface-2); }
+.st-row .st-icon.t-blue { color: #2a6fc9; }
+.st-row .st-icon.t-green { color: #1f8f5c; }
+.st-row .st-icon.t-red { color: #c4352b; }
+.st-row .st-icon.t-orange { color: #c56a12; }
+@media (prefers-color-scheme: dark) {
+    .st-row .st-icon.t-blue { color: #5aa7f5; }
+    .st-row .st-icon.t-green { color: #46c98b; }
+    .st-row .st-icon.t-red { color: #f07167; }
+    .st-row .st-icon.t-orange { color: #f2a65a; }
+}
+.st-row .st-item > .st-icon svg { width: 16px; height: 16px; }
+.st-row .control .what { white-space: nowrap; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.st-row .control .size { min-width: 64px; text-align: right; white-space: nowrap; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* Something going on, as a bar across its group. */
+.st-row.going { display: block; padding: 0; }
+
+/* What peipkg warned of. */
+.st-row.note { display: block; padding-top: 8px; padding-bottom: 8px; }
+.st-more p.quiet { color: var(--text-muted); font-size: 12px; }
+.st-hero .big { overflow-wrap: anywhere; }

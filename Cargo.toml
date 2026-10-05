@@ -1,0 +1,13 @@
+[package]
+name = "gxwi-upgrade-peios"
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[dependencies]
+# Beside this checkout until a libgxwi with the settings kit is released.
+libgxwi = { path = "../gxwi/libgxwi" }
+# upgrade-peios's and peipkg's answers, which are JSON.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

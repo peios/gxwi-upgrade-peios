@@ -1,0 +1,13 @@
+# A stand-in next release of the Experimental edition, for trying Upgrade
+# Peios on the dev VM, never published. It is dev.peios.peios-experimental
+# 2026.9-1: the committed edition recipe's package (package.pekit.toml, its
+# dependency floors kept, dev.peios.net's raised so the plan has more than
+# the edition in it), with what it ships made by hand in src/ rather than by
+# a build.
+#
+# Its release.toml names one seed of its own, upgrade-peios-test, which it
+# ships, and none of the real ones: applying those again on the running dev
+# VM would put back the gxwid service its dev loop replaces.
+#
+# BUILDLESS: dev/repo.sh packages it into the share's dev repository.
+out_dir = "out"

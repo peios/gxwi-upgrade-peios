@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "The stand-in release's one seed: a value saying which release applied",
+    "it, so that applying the release's settings can be seen."
+  ],
+  "keys": [
+    {
+      "path": "Machine/Software/Upgrade Peios Test",
+      "values": [
+        { "name": "Release", "type": "sz", "data": "2026.9" }
+      ]
+    }
+  ]
+}

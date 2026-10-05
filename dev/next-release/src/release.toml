@@ -1,0 +1,6 @@
+# Peios 2026.9 Experimental, a stand-in for trying Upgrade Peios. Read by
+# upgrade-peios. Its one seed is its own and harmless.
+[registry]
+autoapply = [
+  "upgrade-peios-test",
+]

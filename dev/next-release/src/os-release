@@ -1,0 +1,8 @@
+NAME="Peios"
+ID=peios
+VERSION_ID="2026.9"
+VERSION="2026.9 (Experimental)"
+VARIANT="Experimental"
+VARIANT_ID=experimental
+PRETTY_NAME="Peios 2026.9 Experimental"
+DOCUMENTATION_URL="https://learn.peios.org/"
