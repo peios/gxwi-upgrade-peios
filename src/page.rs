@@ -30,8 +30,11 @@ pub fn page(m: &Manager) -> String {
         page.push_str(&self::run(run, status));
         return page;
     }
-    if let Some(queued) = status.queued_seeds.as_ref().filter(|q| !q.is_empty()) {
-        page.push_str(&waiting(queued, status.may_upgrade));
+    match &status.queued_seeds {
+        Some(queued) if !queued.is_empty() => page.push_str(&waiting(queued, status.may_upgrade)),
+        Some(_) => {}
+        // Said, not left out: whether settings wait isn't known.
+        None => page.push_str(&settings::hint("Whether any of this release's settings are waiting for the next restart can't be read.")),
     }
     if status.may_upgrade {
         page.push_str(&check(m, status));
@@ -74,11 +77,14 @@ fn named(version: &str, s: &Status) -> String {
 
 /// The release's settings waiting for the next boot.
 fn waiting(queued: &[String], may: bool) -> String {
-    let about = if queued.len() == 1 {
-        "One of this release's settings was left to apply when the machine next starts. Apply it now to have it in place at once.".to_string()
+    let left = if queued.len() == 1 {
+        "One of this release's settings was left to apply when the machine next starts.".to_string()
     } else {
-        format!("{} of this release's settings were left to apply when the machine next starts. Apply them now to have them in place at once.", queued.len())
+        format!("{} of this release's settings were left to apply when the machine next starts.", queued.len())
     };
+    // --seeds-only gathers and applies every setting the release names, so
+    // the waiting ones are among what is applied, not all of it.
+    let about = format!("{left} Apply Now applies all of the release's settings again, those among them, so they are in place at once.");
     let rows = settings::row(
         "Settings Waiting for the Next Restart",
         &about,
