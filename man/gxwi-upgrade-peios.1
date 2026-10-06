@@ -1,0 +1,49 @@
+.TH GXWI-UPGRADE-PEIOS 1 "2026-10-06" "Peios"
+.SH NAME
+gxwi-upgrade-peios \- move this machine to the next release of Peios, on a GXWI desktop
+.SH SYNOPSIS
+.B gxwi-upgrade-peios
+.SH DESCRIPTION
+Upgrade Peios is the desktop's window on upgrade-peios. It has no authority
+of its own: it runs upgrade-peios as the person, so an upgrade made here is
+exactly the one the command makes. It never parses what either tool prints
+for a person, only their JSON.
+.PP
+At the top is the release this machine runs, and its edition package with
+that package's version. Upgrade Peios looks for a newer release as it opens,
+and again with Check Now: it refreshes the repositories this machine already
+trusts, with peipkg, then asks upgrade-peios what upgrading would change,
+changing nothing. When a newer release is offered, every change is shown,
+with what it downloads and takes once installed.
+.PP
+Upgrade to... makes it. Apply Its Settings at the Next Restart holds the
+release's settings, its registry seeds, until the next restart instead of
+applying them once it is installed. If the changes differ by the time it
+starts, they are shown and asked about again, and anything peipkg needs
+the person's own approval for is asked on its own. The page then shows how
+far it has got. Once approved, the upgrade is made to the end even if the
+window is closed: it stays, saying so, until the upgrade is done. The
+machine is not restarted.
+.PP
+Where a repository's information is out of date, Continue Anyway carries on
+with what this machine has, as upgrade-peios \-\-allow-stale does. Where the
+release's settings are waiting for the next restart, Apply Now applies them
+at once, as upgrade-peios \-\-seeds-only does.
+.PP
+Whether the person may upgrade is asked of the system, by upgrade-peios. As
+shipped, only Administrators may. Anyone else sees the release, with the
+reason said once, and nothing to press. Software other than Peios itself is
+updated in Package Manager.
+.SH FILES
+.TP
+.I /usr/share/apps/dev.peios.gxwi-upgrade-peios.toml
+Its application declaration, listed in a launcher as Upgrade Peios.
+.TP
+.I /usr/bin/upgrade-peios
+What it runs, to read the release and to make the upgrade.
+.TP
+.I /usr/bin/peipkg
+What it runs to list and refresh the trusted repositories.
+.SH SEE ALSO
+.BR peipkg (1).
+Upgrade Peios, and Upgrading Peios, at learn.peios.org.
